@@ -1,1 +1,146 @@
-monitor_config.cnf.template
+!
+! MONITOR_CONFIG_TEMPLATE.CNF template file
+!
+! This file contains a number of MAIN sections:
+!
+!_____________________________________________________________________________
+!!!!!!!!!!!!!!! 1. COMMON SECTION!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! [COMMON]
+!
+! OUTPUT_FOLDER       = Where the output (and some temp files) will be stored
+!
+! RUN_INTERVAL        = Interval in "hh:mm:ss" between full script series runs
+!                         [default 15 minutes = 00:15:00]
+! PML_SAMPLE_PERIOD   = Period in minutes between PML queries
+!                         [default 5 minutes]
+! T4_SAMPLE_INTERVAL  = Sample period for T4 process in seconds
+!                         [default 60 seconds]
+! MON_AUTOSUBMIT      = Whether or not the scripts will autosubmit themselves
+!                         [default 0]
+! PREFIX (deprecated) = Prefix for output files. Default "MON_"
+______________________________________________________________________________
+!!!!!!!!!!!!!!! 2. ITP MONITOR SECTION!!!!!!!!!!!!!!!!!!!!!!
+! [ITPLIST]
+!  This section contains:
+!     ITP_HOSTNAMES         = "<comma separated list of ITP hostnames>"
+!
+!  The ITP sections that are referred to from the ITPS key are defined as:
+!
+!     [<section_name_1>]
+!     ITP_IP_ADDRESS        = "<Cisco ITP IP->"
+!     ITP_USERNAME          = "<Cisco ITP username>"  <-- Empty string if none
+!     ITP_PASSWORD          = "<Cisco ITP password>"
+!     ITP_PASSWORD_ENABLE   = "<Cisco ITP priviledged mode (enable) password>"
+!     [<section_name_2>]
+!         ....
+!     [<section_name_n]
+!
+! [<ITP_NAME>]
+! ==================
+!  This section contains:
+!    COMMANDS               = "<backslash separated list of ITP commands>"
+!  Example:
+!    COMMANDS = "show processes cpu | include CPU\show cs7 linkset util"
+!_____________________________________________________________________________
+!
+!!!!!!!!!!!!!!! 3. LOG MONITOR SECTION!!!!!!!!!!!!!!!!!!!!!!
+!
+! FILES:   Backslash-separated element list containing log files to be checked
+! GREPS:   strings to be searched for each file, pipe (|) separated if several
+!          Use EVAL() if an expression must be run
+! WINDOWS: corresponding to the /win attribute of OpenVMS search command
+!
+!
+! FILES         = "Log_file_1\Log_file_2\..."
+! GREPS         = "string1|string2\string1|string2|string3\..."
+! WINDOWS       = "N,M\N\..."
+! OTHERCMDS     = "VMS command1\VMS Command2\..." # denotes quote in a command
+!_____________________________________________________________________________
+!
+!!!!!!!!!!!!!!! 4. SMSC ENTITY MONITOR SECTION!!!!!!!!!!!!!!
+!
+! NUM| for normal parameters (indicative)
+! CUM| for cumulative parameters
+! STA| for statistical params acu (assumed /CONTENT=PML_SAMPLE_PERIOD)
+! INT| for statistical params avg (assumed /INTERVAL=PML_SAMPLE_PERIOD)
+! Param list accepts only Alphanumeric and underscore chars:
+!  [a-zA-Z0-9] WITHOUT BLANKS except for IW_INFO
+! Multiple entries allowed, _COMMON and _N tag, N in [0..9] or void if only 1
+!
+! ENTITY_LIST = "NUM|/param1/param2/..."
+! ENTITY_LIST = "STA|/param1/param2/..."
+! Example:
+! SMH_COMMON                   = "... "
+! SMH_0                        = "... "
+[...]
+!
+!
+!_____________________________________________________________________________
+!
+!!COMMON SECTION!!!!!!!!!!!!!!!!!!!!!!
+!
+[COMMON]
+! Folder where the output will be stored
+OUTPUT_FOLDER           = "smsc$root:[monitor.out]"
+! Interval between full script series execution;
+! short values (i.e. 1'-5') only while low traffic
+RUN_INTERVAL            = "00:15:00"
+T4_SAMPLE_INTERVAL      = 60
+PML_SAMPLE_PERIOD       = 5
+MON_AUTOSUBMIT          = "y"
+PREFIX                  = "Mon_"
+
+
+!!ITP MONITOR SECTION!!!!!!!!!!!!!!!!!!!!!!
+!
+[ITPLIST]
+ITP_HOSTNAMES           = "ITP-1"
+
+[ITP-1]
+ITP_IP_ADDRESS          = ""
+ITP_USERNAME            = "admin"
+ITP_PASSWORD            = "secret"
+ITP_PASSWORD_ENABLE     = "enable_secret"
+
+[COMMANDS]
+CMD_LIST                = "show processes cpu | include CPU utilization\show cs7 links util | include lsn=|Utilization Thresholds|all\show cs7 asp statistics sctp | include name|Transmit-queue-depth|Current:"
+
+
+!!LOG MONITOR SECTION!!!!!!!!!!!!!!!!!!!!!!
+!
+[LOGMONITOR]
+FILES                   = "smsc$root:[log]smsc.log\DSA0:[SYS%.SYSMGR]OPERATOR.LOG"
+GREPS                   = "-e-|-w-|-f-|license\-e-|-w-|-f-"
+WINDOWS                 = "2\3,3"
+OTHERCMDS_1             = "@CMG$TOOLS:smsc_check_entities\show queue /batch/all\show cluster"
+OTHERCMDS_2             = "mon cluster/end=`+00:00:30`/summ=sys$scratch:mon.sum/nodisplay\type sys$scratch:mon.sum"
+OTHERCMDS_3             = "dir smsc$root:[billing] /since=`-00:15:00`"
+
+
+!!SMSC ENTITY MONITOR SECTION!!!!!!!!!!!!!!
+!
+[SMSC_ENTITIES]
+ENTITY_LIST             = "SMH,GIW,SSD,SIWSMPP,IP7,SIWPC,SMH_COMMON"
+SMH_COMMON              = "NUM|/RETQ_MAX/DELV_PER_NODE_MAX/DELIVERY_MAX"
+SMH_0                   = "NUM|/SM_BUFFERED/NOTIF_BUFFERED/ALLOCATED_ADDRBLOCKS/MSG_DEFERRED"
+SMH_1                   = "INT|/LICENSE_LIMIT_DELAY/LICENSE_LIMIT_REACHED"
+SMH_2                   = "STA|/SM_RECEIVED/SM_TRANSMITTED/SM_FAILED/NOTIF_TRANSMITTED/DELIVERY_ATTEMPT/LENGTH_SM_CUMULATIVE"
+SMH_3                   = "STA|/STAT_MAX_SMDA_PER_SEC/SM_FST_TX_OK/SM_NXT_TX_OK/SM_FST_TX_FAIL_SMSC/SM_FST_TX_FAIL_EXTERN"
+SMH_4                   = "STA|/SM_NXT_TX_FAIL_SMSC/SM_NXT_TX_FAIL_EXTERN/SM_DELETED_FST_TX_FAIL/SM_DELETED_NXT_TX_FAIL/BUF_TIME_CUMULATIVE"
+SMH_5                   = "CUM|/NOTIF_FAILED/SM_INVALID/SM_DISMISSED"
+SIWSMPP_0               = "TAB|/SMPPIW_INFO=(SMPP_OP=BIND_TRCV_RX)"
+SIWSMPP_1               = "CUM|/SES_SETUP_REJ_MAXSES/SES_SETUP_TOT_ATT/SES_SETUP_TOT_REJ"
+SIWPC                   = "CUM|/SES_SETUP_REJ_MAXSES/SES_SETUP_TOT_ATT/SES_SETUP_TOT_REJ"
+GIW_0                   = "CUM|/ROUT_INFO_OK/ROUT_INFO_FAIL/ABSENT_SUBSCRIBER/ABSENT_SUBS_HLR/UNKNOWN_SUBSCRIBER"
+GIW_1                   = "CUM|/ALERT_OK/ALERT_FAIL/FSG_MTSM_OK/FSG_MTSM_FAIL/MAP_SC_CONGESTION/MAP_INVALID_SME_ADDRES"
+GIW_2                   = "CUM|/MAP_SUBSCR_NOT_SC_SUBS/MAP_UNKNOWN_SC/SYSTEM_FAILURE/TCAP_BEGIN_RCVD/TCAP_UNKN_MSG_RCVD"
+GIW_3                   = "CUM|/MAP_PDU_DEC_ERR/MAP_PRV_DEC_ERR/MAP_INV_APP_CTXT/MAP_OPCODE_ERR/TCAP_MSG_DISC/MAP_PROTO_ERR"
+GIW_4                   = "NUM|/MAP_DIA_IN_USE/MAP_DIA_FREE"
+GHLR_0                  = "CUM|/SRI_RECEIVED/SRI_REJECTED/SRI_DISCARDED"
+GHLR_1                  = "CUM|/MAP_OPCODE_ERR/MAP_INVOKE_ERR/MAP_INV_APP_CTXT/TCAP_UABT_RCVD/TCAP_UABT_SNT"
+SSD                     = "CUM|/SM_MO_BARRED_ORIG_LST/SM_MO_BARRED_RECIP_LST"
+IP7_0                   = "NUM|/XUA_SND_BUF_FREE/XUA_SIG_NODES_FREE/SSRV_RAS_BUF_FREE"
+IP7_1                   = "CUM|/SCTP_DT_CHKS_RETRANS/SSRV_LOCAL_NTWK_CONG/SSRV_LOCAL_SS_CONG/SSRV_LOCAL_MTP_FAIL/SSRV_LOCAL_SS_FAIL"
+IP7_2                   = "STA|/SCTP_ASSOC_ACTV_ESTAB/SCTP_ASSOC_CURR_ESTAB"
+IP7_3                   = "CUM|/SCCP_SSC_RCVD/SSRV_OVERLOAD_PROT/SSRV_NW_RCV_HOPC_VIOL/SSRV_NW_RCV_MSG_TRANS/SSRV_NW_RCV_LOCAL_PROC/SSRV_NW_RCV_MTP_FAIL"
+IP7_4                   = "CUM|/SSRV_NW_RCV_NTRAN_ADDR/SSRV_NW_RCV_NTRAN_NOA/SSRV_NW_RCV_NTWK_CONG/SSRV_NW_RCV_SS_CONG/SSRV_NW_RCV_SS_FAIL/SSRV_TRANS_FAILURE"
