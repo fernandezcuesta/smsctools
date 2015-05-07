@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-#!/usr/bin/python2
-=======
 #!/usr/bin/env python2
->>>>>>> c3aba071114a36b75feb753b72249e897aaedc69
 # -*- coding: utf-8 -*-
 """
 PML2CSV - convert PML output to comma-separated values (CSV),
