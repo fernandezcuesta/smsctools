@@ -1,31 +1,31 @@
 [SYS_BACKUP_CFG]
 
 # Configuration item: BACKUP_DIRECTORY. Format: Directory.
-BACKUP_LOCATION = "bck_dsk:[backup]"
+BACKUP_LOCATION = bck_dsk:[backup]
 
 # Configuration item: BACKUP_EXCLUDELIST. Format: Filespec (Comma sep.)
 # Directories must be specified as [DIRECTORY.NAME...]*
 # If BACKUP_EXCLUDELIST is empty, Image backup will be performed
-BACKUP_EXCLUDELIST = "*.LOG,[GOLD.KITS...]*,*.PCSI*,*.ZIPEXE"
+BACKUP_EXCLUDELIST = *.LOG,[GOLD.KITS...]*,*.PCSI*,*.ZIPEXE
 
 # Configuration item: BACKUP_TIME
 # Format: "hh:mm" time for the reschedule
-BACKUP_TIME = "02:00"
+BACKUP_TIME = 02:00
 
 # Configuration item: BACKUP_WDAY - day of the week for full backup
 # Format: {Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday}
-BACKUP_WDAY = "Monday"
+BACKUP_WDAY = Monday
 
 # Configuration item: INCREMENTAL (Yes,[No])
 # Incremental backups are done daily,
 # otherwise weekly at Backup_wday:Backup_time
-INCREMENTAL = "NO"
+INCREMENTAL = NO
 
 # Configuration item: RESCHEDULE (Yes,[No])
-RESCHEDULE = "YES"
+RESCHEDULE = YES
 
 # Configuration item: SDB_FORCE (Yes,[No])
-SDB_FORCE = "YES"
+SDB_FORCE = YES
 
 # Database name: SDB_NAME (default: smsc_db_sdb)
 #SDB_NAME = ""
@@ -35,37 +35,37 @@ SDB_KEEPDAYS = 30
 
 # Configuration item: BACKUP_DAYS_KEEP_LOCAL_ARCHIVE
 # Format: Integer
-BACKUP_DAYS_KEEP_LOCAL_ARCHIVE = "30"
+BACKUP_DAYS_KEEP_LOCAL_ARCHIVE = 30
 
 # Configuration item: ZIP_ARCHIVE ("Always",["Skip"])
-ZIP_ARCHIVE = "SKIP"
-#
+ZIP_ARCHIVE = SKIP
+
 # Configuration item: BACKUP_LOG_DIR
-BACKUP_LOG_DIR = "bck_dsk:[BACKUP.LOG]"
+BACKUP_LOG_DIR = bck_dsk:[BACKUP.LOG]
 
 # Configuration item: FILE_TRANSFER {FTP, SFTP, PULL=None}
 # SFTP assumes Public-key authentication
 # Pull does not transfer the archive, just puts it into a ZIP file
-FILE_TRANSFER = "SFTP"
+FILE_TRANSFER = SFTP
 
 [SYS_BACKUP_TX]
 # Transference settings (for FILE_TRANSFER values rather than PULL)
 #
 # Configuration item: BACKUP_REMOTE_DIRECTORY. Format: Directory
 # Use "." for current or default directory
-BACKUP_REMOTE_DIRECTORY = "."
+BACKUP_REMOTE_DIRECTORY = .
 
 # Configuration item: BACKUP_REM_NODE
 # Format: IP address ("n.n.n.n") or hostname
-BACKUP_REM_NODE = "ftp_san"
+BACKUP_REM_NODE = ftp_san
 
 # Configuration item: BACKUP_REM_USER
 # Format: "username password", or "user" for public-key authentication
-BACKUP_REM_USER = "bkpusr"
+BACKUP_REM_USER = bkpusr
 
 # Configuration item: BACKUP_REMOTE_SYSTEM_TYPE
 # Remote OS system {UNIX, VMS}
-BACKUP_REMOTE_SYSTEM_TYPE = "UNIX"
+BACKUP_REMOTE_SYSTEM_TYPE = UNIX
 
 # Configuration item: FILE_COUNT_FOR_TRANSFER
 # Number of attempts to tranfer the file
@@ -73,5 +73,5 @@ FILE_COUNT_FOR_TRANSFER = 3
 
 # Configuration item: REMOTE_SFTP_COMMAND
 # For SFTP, set up a command to be executed once the transfer is done
-REMOTE_SFTP_COMMAND = "sh cleanup.sh"
+REMOTE_SFTP_COMMAND = sh cleanup.sh
 

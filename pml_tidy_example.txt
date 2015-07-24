@@ -1,0 +1,60 @@
+Output file opened at 30-OCT-2014 10:42:48.
+%PMM-I-OUTOPEN, Opened output file SYS$SYSDEVICE:[SCRATCH]GIW_OUT.TMP
+MON> SHOW CLASS GIW ENTITY GIW_11 /ROUT_INFO_OK/ROUT_INFO_FAIL/ABSENT_SUBSCRIBER/ABSENT_SUBS_HLR/UNKNOWN_SUBSCRIBER
+         Number of succesful Routing Info requests: 0
+            Number of failed Routing Info requests: 0
+                Number of Absent Subscriber errors: 0
+      Number of Absent Subscriber errors on SRI-SM: 0
+           Nr. of SRI-SM Unknown Subscriber errors: 0
+MON> SHOW CLASS GIW ENTITY GIW_21 /ROUT_INFO_OK/ROUT_INFO_FAIL/ABSENT_SUBSCRIBER/ABSENT_SUBS_HLR/UNKNOWN_SUBSCRIBER
+         Number of succesful Routing Info requests: 0
+            Number of failed Routing Info requests: 0
+                Number of Absent Subscriber errors: 0
+      Number of Absent Subscriber errors on SRI-SM: 0
+           Nr. of SRI-SM Unknown Subscriber errors: 0
+MON> SHOW CLASS GIW ENTITY GIW_11 /ALERT_OK/ALERT_FAIL/FSG_MTSM_OK/FSG_MTSM_FAIL/MAP_SC_CONGESTION/MAP_INVALID_SME_ADDRES
+           Number of accepted Alert SC indications: 0
+           Number of rejected Alert SC indications: 0
+       Number of FSG accepted Mobile Terminated SM: 0
+       Number of FSG rejected Mobile Terminated SM: 0
+                    Number of SC Congestion Errors: 0
+              Number of Invalid SME Address Errors: 0
+MON> SHOW CLASS GIW ENTITY GIW_21 /ALERT_OK/ALERT_FAIL/FSG_MTSM_OK/FSG_MTSM_FAIL/MAP_SC_CONGESTION/MAP_INVALID_SME_ADDRES
+           Number of accepted Alert SC indications: 0
+           Number of rejected Alert SC indications: 0
+       Number of FSG accepted Mobile Terminated SM: 0
+       Number of FSG rejected Mobile Terminated SM: 0
+                    Number of SC Congestion Errors: 0
+              Number of Invalid SME Address Errors: 0
+MON> SHOW CLASS GIW ENTITY GIW_11 /MAP_SUBSCR_NOT_SC_SUBS/MAP_UNKNOWN_SC/SYSTEM_FAILURE/TCAP_BEGIN_RCVD/TCAP_UNKN_MSG_RCVD
+         Number of Subscr Not SC Subscriber Errors: 0
+                       Number of Unknown SC Errors: 0
+                   Number of System Failure errors: 0
+    Number of Begin Dialogue transactions received: 0
+ Number of incorrect or unknown TCAP msgs received: 0
+MON> SHOW CLASS GIW ENTITY GIW_21 /MAP_SUBSCR_NOT_SC_SUBS/MAP_UNKNOWN_SC/SYSTEM_FAILURE/TCAP_BEGIN_RCVD/TCAP_UNKN_MSG_RCVD
+         Number of Subscr Not SC Subscriber Errors: 0
+                       Number of Unknown SC Errors: 0
+                   Number of System Failure errors: 0
+    Number of Begin Dialogue transactions received: 0
+ Number of incorrect or unknown TCAP msgs received: 0
+MON> SHOW CLASS GIW ENTITY GIW_11 /MAP_PDU_DEC_ERR/MAP_PRV_DEC_ERR/MAP_INV_APP_CTXT/MAP_OPCODE_ERR/TCAP_MSG_DISC/MAP_PROTO_ERR
+                   Number of MAP PDU decode errors: 0
+              Number of MAP provider decode errors: 0
+         Invalid MAP application contexts received: 0
+    Number of invalid MAP operation codes received: 0
+                 Number of discarded TCAP messages: 0
+                     Number of MAP protocol errors: 0
+MON> SHOW CLASS GIW ENTITY GIW_21 /MAP_PDU_DEC_ERR/MAP_PRV_DEC_ERR/MAP_INV_APP_CTXT/MAP_OPCODE_ERR/TCAP_MSG_DISC/MAP_PROTO_ERR
+                   Number of MAP PDU decode errors: 0
+              Number of MAP provider decode errors: 0
+         Invalid MAP application contexts received: 0
+    Number of invalid MAP operation codes received: 0
+                 Number of discarded TCAP messages: 0
+                     Number of MAP protocol errors: 0
+MON> SHOW CLASS GIW ENTITY GIW_11 /MAP_DIA_FREE
+                      Number of free MAP dialogues: 10001
+MON> SHOW CLASS GIW ENTITY GIW_21 /MAP_DIA_FREE
+                      Number of free MAP dialogues: 10001
+MON> DISCONNECT
+MON> EXIT
