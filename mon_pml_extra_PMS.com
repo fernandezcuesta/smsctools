@@ -116,8 +116,8 @@ $   if f$type(fichero) .EQS. "" then goto BAD_END
 $   SAY "Processing ''fichero' with wildcard ""''search_string'""..."
 $   search 'fichero' "''search_string'" /win=(2,1) /output='temp_file'
 $   shortcut :== "''output_csv'"
-$   say /symbol "python_launch ''working_dir'pms2csv.py ""''temp_file'"" ""''entity_class'"" ""''NODE_NAME'"" ""''timestamp'"" ""''output_csv'"""
-$   python_launch 'working_dir'pms2csv.py "''temp_file'" "''entity_class'" "''NODE_NAME'" "''timestamp'" 'shortcut
+$   say /symbol "python_launch ''working_dir'pms2csv.py ""''temp_file'"" ""''entity_class'"" ""''NODE_NAME'"" ""''output_csv'"" ""''timestamp'"""
+$   python_launch 'working_dir'pms2csv.py "''temp_file'" "''entity_class'" "''NODE_NAME'" 'shortcut "''timestamp'" 
 $!
 $   delete 'temp_file';*
 $   EXIT %X00030001
