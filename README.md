@@ -1,6 +1,9 @@
 # smsctools
 OpenVMS DCL and Python scripts for Acision v5 SMSC monitoring
 
+##sys_backup.com
+SMSC system disk and database backup
+
 ##mon_pml.com
 DCL script to periodically gather v5 statistics
 
