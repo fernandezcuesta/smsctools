@@ -11,7 +11,7 @@ $!  p4: autosubmit [0,1]      [default: no autosubmit (0) / CONFIG FILE VALUE]
 $!
 $!============================================================================
 $!
-$! Version 1501.02
+$! Version 1501.03
 $!
 $!
 $!
@@ -100,7 +100,7 @@ $!
 $!
 $!
 $ NODE_NAME = F$GETSYI ("NODENAME")
-$ NODE_NAME = F$EXTRACT(0, F$LENGTH(NODE_NAME)-1, NODE_NAME)
+$ NODE_NAME = F$EXTRACT(0, F$LENGTH(NODE_NAME) - 1, NODE_NAME)
 $ IF F$GETSYI("CLUSTER_NODES") .EQ. 0
 $  THEN
 $    NODE_NR = 1
@@ -108,7 +108,7 @@ $  ELSE
 $    NODE_NR = F$GETSYI("CLUSTER_NODES")
 $ ENDIF
 $ TIMESTAMP = F$CVTIME(F$TIME(), "ABSOLUTE")
-$ NEXTIME = F$CVTIME("''TIMESTAMP'+00:''PML_SAMPLE_PERIOD':00","ABSOLUTE")
+$ NEXTIME = F$CVTIME("''TIMESTAMP'+00:''PML_SAMPLE_PERIOD':00", "ABSOLUTE")
 $ DAYTAG = F$FAO("!2ZL!AS!AS", F$INT(F$CVTIME(TIMESTAMP, , "DAY")), -
   F$CVTIME(TIMESTAMP, "ABSOLUTE", "MONTH"), F$CVTIME(TIMESTAMP, , "YEAR"))
 $!
@@ -120,10 +120,11 @@ $ Queue_loop:
 $       Qname = F$GetQui("Display_Queue", "QUEUE_NAME", "*")
 $       If Qname .Eqs. "" Then Goto Out_Loop
 $!       SAY "Queue : ''Qname'"
-$       If .Not. -
-        F$GetQui("Display_Queue","QUEUE_BATCH","*","WILDCARD,FREEZE_CONTEXT") -
-         Then Goto Queue_Loop
-$! SAY "Have found a suitable batch queue ... now looking for suitable jobs ..."
+$       If .Not. F$GetQui("Display_Queue", -
+                          "QUEUE_BATCH", -
+                          "*", -
+                          "WILDCARD, FREEZE_CONTEXT") Then Goto Queue_Loop
+$! SAY "Have found a suitable batch queue... now looking for suitable jobs..."
 $!
 $ Job_Loop:
 $       NoAccess = F$GetQui("Display_Job", "JOB_INACCESSIBLE", , "ALL_JOBS")
@@ -132,7 +133,8 @@ $       IF NoAccess .Eqs. ""     Then Goto Queue_Loop
 $       Jname = F$GetQui("DISPLAY_JOB", "JOB_NAME", , "FREEZE_CONTEXT")
 $       If F$Extract(0, F$LENGTH(scriptname), Jname) .NES. scriptname -
          Then Goto Job_Loop
-$       found_entry = F$GetQui("DISPLAY_JOB","ENTRY_NUMBER",,"FREEZE_CONTEXT")
+$       found_entry = F$GetQui("DISPLAY_JOB", "ENTRY_NUMBER", , -
+                               "FREEZE_CONTEXT")
 $       if f$environment("INTERACTIVE") then goto ALREADY_RUNNING
 $       my_job = f$getqui("display_job", "entry_number", , "this_job")
 $       if my_job .ne. found_entry
@@ -146,8 +148,8 @@ $!
 $! Resubmit, if told to do so
 $!
 $ resubmit_myself = -
-       "SUBMIT /NOPRINT/QUEUE=SYS$BATCH/after=""''NEXTIME'"" ''scriptfile' " + -
-       "/param=(''enable_log',''config_file',''OUTDIR',1)"
+       "SUBMIT /NOPRINT/QUEUE=SYS$BATCH/after=""''NEXTIME'"" " + -
+       "''scriptfile' /param=(''enable_log',''config_file',''OUTDIR',1)"
 $!
 $ if enable_log then resubmit_myself = resubmit_myself + -
   "/log=SYS$SYSDEVICE:[SMSC.LOG]''PREFIX'PML_''NODE_NAME'.LOG"
@@ -155,7 +157,7 @@ $!
 $!
 $ If p4 .NES. ""
 $  Then
-$    if (p4 .EQS. 1) .or. (f$edit(p4, "COLLAPSE,UPCASE")) .EQS. "Y"
+$    if (p4 .EQS. 1) .or. (f$edit(p4, "COLLAPSE, UPCASE")) .EQS. "Y"
 $     Then
 $      resubmission = 1
 $     Else
@@ -166,7 +168,8 @@ $    resubmission = 0
 $    if F$TYPE (MON_AUTOSUBMIT) .NES. ""
 $    then
 $     if (MON_AUTOSUBMIT .EQS. "1") .or. -
-      (f$edit(MON_AUTOSUBMIT,"UPCASE,COLLAPSE") .EQS. "Y") THEN resubmission = 1
+      (f$edit(MON_AUTOSUBMIT, "UPCASE, COLLAPSE") .EQS. "Y") -
+      THEN resubmission = 1
 $    endif
 $ Endif
 $!
@@ -191,7 +194,7 @@ $! Calls to PML, generates the OUTPUT, and goes through the loop of entities
 $! configured in ENTITY_LIST
 $ ENTITY_LOOP:
 $!
-$  ENTITY = F$EDIT(F$ELEMENT(index_cfg, ",", ENTITY_LIST), "COLLAPSE,UPCASE")
+$  ENTITY = F$EDIT(F$ELEMENT(index_cfg, ",", ENTITY_LIST), "COLLAPSE, UPCASE")
 $  if (ENTITY .EQS. ",") .OR. (ENTITY .EQS. "") THEN goto END_ENTITY_LOOP_1
 $!
 $!
@@ -218,7 +221,8 @@ $  index_ent = 0
 $! index_ent goes through the list of configured entities of a class
 $! (ELEMCLASS element list)
 $ if index_suffix .GE. 1 -
-   then ENTITY = entname + "_" + f$element(index_suffix-1, ",", entcfg_suffixes)
+   then ENTITY = entname + "_" + f$element(index_suffix-1, ",", -
+                                           entcfg_suffixes)
 $ say "''index_suffix'/''num_suffixes': Processing entry for ''ENTITY'"
 $!
 $! 'ENTITY' is actually the attributes of the
@@ -234,12 +238,12 @@ $   ENDIF
 $   pml_attrib = f$element(1, "|", 'ENTITY')
 $   num_attrib = 0
 $ countloop:
-$   if f$element(num_attrib+1, "/", pml_attrib) .NES. "/"
+$   if f$element(num_attrib + 1, "/", pml_attrib) .NES. "/"
 $    then
 $     num_attrib = num_attrib + 1
 $     goto countloop
 $   endif
-$   counter_type = f$edit(f$element(0, "|", 'ENTITY'), "COLLAPSE,UPCASE")
+$   counter_type = f$edit(f$element(0, "|", 'ENTITY'), "COLLAPSE, UPCASE")
 $   if counter_type .EQS. "STA" then statistical = 1
 $   if counter_type .EQS. "CUM" then cumulative = 1
 $   if counter_type .EQS. "TAB" then cumulative = 2
@@ -296,11 +300,11 @@ $ say /symbol "At ''timestamp' , OUTPUT=''output_csv'"
 $ say "Nature of counters: --''cum_string'--"
 $ python_launch 'working_dir'pml2csv.py "''pml_result'" "''entname'" -
                 "''ELEMCLASS'" "''timestamp'" 'output_shc "''cum_string'"
-$!
 $ delete 'pml_result';*
-$ adjusted_time = f$cvtime("''timestamp'-00:''PML_SAMPLE_PERIOD':00","ABSOLUTE")
-$ adjusted_time = -
-              f$cvtime("''adjusted_time'-00:''PML_SAMPLE_PERIOD':00","ABSOLUTE")
+$ adjusted_time = f$cvtime("''timestamp'-00:''PML_SAMPLE_PERIOD':00", -
+                           "ABSOLUTE")
+$ adjusted_time = f$cvtime("''adjusted_time'-00:''PML_SAMPLE_PERIOD':00", -
+                           "ABSOLUTE")
 $ Say "Deleting old temporary files"
 $ delete /log 'outdir''entname'_'NODE_NAME'_*.tmp;* /before="''adjusted_time'"
 $! Check version and reset if higher than 30000
@@ -319,7 +323,8 @@ $   say "Deleting old log files..."
 $   logfile_reg = "SYS$SYSDEVICE:[SMSC.LOG]''PREFIX'PML_''NODE_NAME'.LOG"
 $   purge 'logfile_reg /keep=10
 $!  Check version and reset if higher than 30000
-$   say "''logfile_reg': " + f$parse(f$search(logfile_reg),,,"version") - ";"
+$   say "''logfile_reg': " + -
+        f$parse(f$search(logfile_reg), , , "version") - ";"
 $   if (f$parse(f$search(logfile_reg), , , "version") - ";" .gt. 30000) -
       then @smsc$root:[scripts]reset_version 'logfile_reg "/log /keep=10"
 $ endif
@@ -343,7 +348,7 @@ $ endif
 $!
 $! Move all files older than KEEPDAYS (under COMMON) to the [.old] subfolder
 $!
-$ olddir = f$extract(0, f$length(outdir)-1, outdir) + ".old]"
+$ olddir = f$extract(0, f$length(outdir) - 1, outdir) + ".old]"
 $ if f$search("''outdir'old.dir") .EQS. "" then create /dir 'olddir
 $ IF F$TYPE(KEEP_DAYS) .NES. ""
 $  THEN IF F$LENGTH(KEEP_DAYS) .EQ. 0 THEN KEEP_DAYS = 3
@@ -362,23 +367,24 @@ $!
 $!
 $!
 $!
-$!==============================================================================
+$!============================================================================
 $!
 $! SUBROUTINES
 $!
-$!==============================================================================
+$!============================================================================
 $!
 $! LOOK FOR THE LIST OF ENTITIES OF A CLASS, returns contents in ELEMCLASS;
 $! source is "entname"
 $! Format of ELEMCLASS is "Nr_of_entities|ENTname_1,ENTname_2,...,ENTname_N"
+$!
 $ ENTITY_NAME_LOOKUP:
 $ ENTITIES = ""
 $ CINDEX = 0
 $ NODE_IX = 0
 $!
 $!
-$ say -
-"LOOKING FOR CONFIGURED ENTITIES OF CLASS ''entname' ON CLUSTER ''NODE_NAME'..."
+$ say "LOOKING FOR CONFIGURED ENTITIES OF CLASS ''entname' ON " + -
+      "CLUSTER ''NODE_NAME'..."
 $!
 $ FILE = "SYS$SYSDEVICE:[SMSC]SMH.PML"
 $!
@@ -411,7 +417,8 @@ $!
 $ READ_FILE_LOOP:
 $  READ /END=END_READ PMLFILE LINE
 $  LINE = F$EDIT(LINE, "TRIM,COMPRESS")
-$!If an entry in the PML file is commented out, the entity is not created=> SKIP
+$! If an entry in the PML file is commented out,
+$! the entity is not created=> SKIP
 $  IF F$EXTRACT(0, 1, LINE) .EQS. "!" THEN GOTO READ_FILE_LOOP
 $    IF F$LOCATE(entname, LINE) .NES. F$LENGTH(LINE)
 $     THEN
@@ -461,11 +468,11 @@ $ RETURN
 $!
 $!
 $!
-$!==============================================================================
+$!============================================================================
 $!
 $! FAILURE EXITPOINTS
 $!
-$!==============================================================================
+$!============================================================================
 $!
 $!
 $ BAD_END:
@@ -485,8 +492,8 @@ $!  exit
 $!
 $ NOT_PYTHON:
 $  WRITE SYS$OUTPUT -
-    "Python not found, check its startup and setup scripts are invoked in " + -
-    "SYSTARTUP_VMS and SYLOGIN respectively..."
+    "Python not found, check its startup and setup scripts are present " + -
+    "in SYSTARTUP_VMS and SYLOGIN respectively..."
 $  WRITE SYS$OUTPUT ""
 $  exit
 $!
@@ -500,7 +507,8 @@ $  WRITE SYS$OUTPUT ""
 $  exit
 $!
 $ BAD_CONFIG:
-$  WRITE SYS$OUTPUT "Bad config file ''config_file' or file missing, aborting."
+$  WRITE SYS$OUTPUT "Bad config file ''config_file' or file missing, " + -
+                    "aborting."
 $  exit
 $!
 $ NOPMLFILE:
