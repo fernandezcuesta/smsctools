@@ -8,7 +8,7 @@ Input parameters:
 
  p1: PML output
  p2: classname (i.e. 'SMH')
- p3: MOD_ELEMCLASS object (i.e. 'SMTFZ,SMH00,SMH01,SMH02,SMH03')
+ p3: MOD_ELEMCLASS object (i.e. 'SMXXYY,SMH00,SMH01,SMH02,SMH03')
  p4: timestamp (format: 1-JAN-1970 00:00:00.00)
  p5: CSV output
  p6: Type of counter list [0102100110....]
@@ -22,17 +22,17 @@ This way we can do the difference.
 - q points to the parameter position
 - p points to the parameter in cumulative list
 -  cumvalue = 0 means normal counter
-         = 1 means cumulative -> do the difference with the previous run
-         = 2 means IW_INFO table (cumulative) => go through list and
-                                       make the differencence
+            = 1 means cumulative -> do the difference with the previous run
+            = 2 means IW_INFO table (cumulative) => go through list and
+                                                    make the differencence
 
-v2.4.3 - style corrections and minor refactoring
+v2.5 - style corrections and minor refactoring
 v2.4 - Performance improvements, fixed retrieval of old data
 v2.3 - Sample-time column name set according to other T4-CSV files
 v2.2 - Added Argparse, refactored
 v2.1 - Refactored
 v2.0 - A little bit less anti-pythonic
-v1.8 - Quick'n'dirty initial version
+v1.0 - Quick'n'dirty initial version
 
 """
 # Running on python 2.5.1, with statement introduced in 2.6
@@ -42,7 +42,7 @@ from re import search as re_search, IGNORECASE as nocase
 from os.path import splitext as os_splitext, exists as os_exists
 
 
-__version_info__ = (2, 4, 3)
+__version_info__ = (2, 5, 0)
 __version__ = '.'.join(str(i) for i in __version_info__)
 __author__ = 'fernandezjm'
 
@@ -66,14 +66,16 @@ def get_input_arguments():
         parser.add_argument('classname', metavar='Class name', type=str,
                             help='Entity class name (i.e. "SMH"')
         parser.add_argument('elemclass', metavar='Class elements', type=str,
-                            help='Elemclass object (i.e. "SMTFZ,GIW_11,GIW_12"')
+                            help='Elemclass object (i.e. "SMXXYY,GIW_1,GIW_2"')
         parser.add_argument('timestamp', metavar='Timestamp', type=str,
                             help='Time stamp for current sample')
         parser.add_argument('output_file', metavar='output-file', type=str,
                             help='Resulting CSV file')
-        parser.add_argument('type_of_counter', metavar='counter-list', type=str,
-                            help=("Type of counter list [0102100110...], where:"
-                                  "\n 0 means normal counter"
+        parser.add_argument('type_of_counter',
+                            metavar='counter-list',
+                            type=str,
+                            help=("Type of counter list [0102100110...], "
+                                  "where:\n 0 means normal counter"
                                   "\n 1 means cumulative: "
                                   "do the difference with the previous run\n"
                                   " 2 means IW_INFO table (cumulative): go "
@@ -81,6 +83,7 @@ def get_input_arguments():
         return parser.parse_args()
     except ImportError:
         class ARGS(object):
+
             """
             For python 2.5 don't use argparse and set ARGS directly from sysarg
             """
@@ -98,14 +101,15 @@ def get_input_arguments():
         return ARGS()
 
 
-class Data(object):
+class PmlData(object):
+
     """
     A simple class containing miscellaneous data
     """
 
     def read_input(self):
         """
-        Called from pml2csv()
+        Called from convert_to_t4csv()
         Read input file
         """
         try:
@@ -124,7 +128,8 @@ class Data(object):
         if os_exists(self.args.output_file):
             try:
                 with open(self.args.output_file, 'r') as _outputcsv:
-                    if _outputcsv.readline().startswith(self.args.elemclass[0]):
+                    if _outputcsv.readline().startswith(
+                      self.args.elemclass[0]):
                         self.is_new_file = False
                     else:
                         self.is_new_file = True
@@ -145,7 +150,7 @@ class Data(object):
         else:
             self.old_tmp_found = False
 
-    def get_res_for_cum2(self, nextline, paramlist):
+    def get_result_for_interworking_table(self, nextline, paramlist):
         """
         Called from process_search()
         Processes the results when the type of counter is 2=TAB (IW_INFO table)
@@ -195,17 +200,17 @@ class Data(object):
                     value_res += SEPARATOR + vlres
         return value_res, value_diff
 
-    def get_res_for_cumb(self, nextline, paramlist):
+    def get_result_for_statistical_or_cumulative(self,
+                                                 nextline,
+                                                 paramlist,
+                                                 cumulative):
         """
         Called from process_search()
-        Processes the results when the type of counter is 0=STA or 1=CUM
+        Processes the results when the type of counter is 0=STATISTICAL
+        or 1=CUMULATIVE
         """
         value = self.lines[self.index].split(':')[1].split()[0]
-        cumvalue = int(self.args.type_of_counter[self.p_index])
-        if cumvalue == 0:
-            value_diff = '0'
-        if cumvalue == 1:
-            value_diff = value
+        value_diff = value if cumulative else '0'
         if self.is_new_file:
             self.header += SEPARATOR + self.entname + '_' + paramlist[nextline]
 
@@ -218,7 +223,7 @@ class Data(object):
     def process_search(self, result_text_and_index):
         """
         Called from process_entity()
-        Processed search string
+        Process search string
         """
         if result_text_and_index[0] == None:
             return()
@@ -230,19 +235,21 @@ class Data(object):
             self.index = result_text_and_index[1] + nextline + 1
             cumvalue = int(self.args.type_of_counter[self.p_index])
             if cumvalue == 2:
-                (value_res, value_diff) = self.get_res_for_cum2(nextline,
-                                                                paramlist)
-                self.q_index += 4
+                (value_res, value_diff) = \
+                    self.get_result_for_interworking_table(nextline, paramlist)
+                self.q_index += 4  # go +4 lines ahead
             else:
-                (value_res, value_diff) = self.get_res_for_cumb(nextline,
-                                                                paramlist)
-                self.q_index += 1
+                (value_res, value_diff) = \
+                    self.get_result_for_statistical_or_cumulative(nextline,
+                                                                  paramlist,
+                                                                  cumvalue)
+                self.q_index += 1  # go +1 line ahead
             self.output_data += SEPARATOR + value_res
             if self.diffline == '':
                 self.diffline = value_diff
             else:
                 self.diffline += SEPARATOR + value_diff
-            self.p_index += 1
+            self.p_index += 1  # select next parameter
 
     def process_entity(self, entname):
         """
@@ -253,10 +260,11 @@ class Data(object):
         self.p_index = 0
         map(self.process_search,
             [(re_search('SHOW CLASS %s ENTITY %s /(.*)' % (self.args.classname,
-                        entname), self.lines[i], nocase), i)
+                                                           entname),
+                        self.lines[i], nocase), i)
              for i in range(len(self.lines))])
 
-    def pml2csv(self):
+    def convert_to_t4csv(self):
         """
         Called from init()
         Main method
@@ -273,7 +281,8 @@ class Data(object):
                 if self.is_new_file:
                     output.write(self.args.elemclass[0] + SEPARATOR +
                                  '\n$$$ START COLUMN HEADERS $$$\n')
-                    output.write(self.header + '\n$$$ END COLUMN HEADERS $$$\n')
+                    output.write(self.header +
+                                 '\n$$$ END COLUMN HEADERS $$$\n')
                 # write the data
                 output.write(self.output_data+'\n')
         except IOError:
@@ -286,14 +295,17 @@ class Data(object):
         except IOError:
             print "Error: can't write to temporary file: " + self.tmpfile
 
-    def __init__(self):
+    def __init__(self, input_arguments=None):
         """
-        Defines class 'Data'
+        PML to T4-CSV parser
         """
-        self.q_index = self.p_index = self.index = 0
+        # Initialize internal pointers for the parsing operation
+        self.q_index = 0  # selects which line in the text we're working with
+        self.index = 0  # selects where the data is
+        self.p_index = 0  # selects which parameter type (from elemclass)
         self.diffline = self.lines = self.entname = self.current = ''
-        self.header = '[MON]Sample Time'  # initial value for header
-        self.args = get_input_arguments()
+        self.header = '[MON]Sample Time'  # first column is always the timestamp
+        self.args = input_arguments or get_input_arguments()
         self.output_data = self.args.timestamp  # initial content of each row
         # tmpfile will have a single line with the latest diffline
         self.tmpfile = os_splitext(self.args.output_file)[0] + '.tmp'
@@ -301,5 +313,5 @@ class Data(object):
 
 
 if __name__ == "__main__":
-    DATA = Data()
-    DATA.pml2csv()
+    pml_data = PmlData()
+    pml_data.convert_to_t4csv()
